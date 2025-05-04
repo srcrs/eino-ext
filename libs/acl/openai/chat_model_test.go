@@ -20,7 +20,7 @@ import (
 	"math/rand"
 	"testing"
 
-	goopenai "github.com/meguminnnnnnnnn/go-openai"
+	goopenai "github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/cloudwego/eino/schema"
@@ -69,20 +69,6 @@ func TestToXXXUtils(t *testing.T) {
 			ImageURL: &goopenai.ChatMessageImageURL{
 				URL:    "test_url",
 				Detail: goopenai.ImageURLDetailAuto,
-			},
-		})
-
-		assert.Equal(t, mc[2], goopenai.ChatMessagePart{
-			Type: goopenai.ChatMessagePartTypeInputAudio,
-			InputAudio: &goopenai.ChatMessageInputAudio{
-				Data:   "test_url",
-				Format: "mp3",
-			},
-		})
-		assert.Equal(t, mc[3], goopenai.ChatMessagePart{
-			Type: goopenai.ChatMessagePartTypeVideoURL,
-			VideoURL: &goopenai.ChatMessageVideoURL{
-				URL: "test_url",
 			},
 		})
 

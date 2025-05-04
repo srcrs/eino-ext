@@ -28,7 +28,7 @@ import (
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/schema"
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/meguminnnnnnnnn/go-openai"
+	"github.com/sashabaranov/go-openai"
 )
 
 type ChatCompletionResponseFormatType string
@@ -226,23 +226,12 @@ func toOpenAIMultiContent(mc []schema.ChatMessagePart) ([]openai.ChatMessagePart
 			if part.AudioURL == nil {
 				return nil, fmt.Errorf("AudioURL field must not be nil when Type is ChatMessagePartTypeAudioURL")
 			}
-			ret = append(ret, openai.ChatMessagePart{
-				Type: openai.ChatMessagePartTypeInputAudio,
-				InputAudio: &openai.ChatMessageInputAudio{
-					Data:   part.AudioURL.URL,
-					Format: part.AudioURL.MIMEType,
-				},
-			})
+			continue
 		case schema.ChatMessagePartTypeVideoURL:
 			if part.VideoURL == nil {
 				return nil, fmt.Errorf("VideoURL field must not be nil when Type is ChatMessagePartTypeVideoURL")
 			}
-			ret = append(ret, openai.ChatMessagePart{
-				Type: openai.ChatMessagePartTypeVideoURL,
-				VideoURL: &openai.ChatMessageVideoURL{
-					URL: part.VideoURL.URL,
-				},
-			})
+			continue
 		default:
 			return nil, fmt.Errorf("unsupported chat message part type: %s", part.Type)
 		}
@@ -325,7 +314,7 @@ func (c *Client) genRequest(in []*schema.Message, opts ...model.Option) (*openai
 	req := &openai.ChatCompletionRequest{
 		Model:            *options.Model,
 		MaxTokens:        dereferenceOrZero(options.MaxTokens),
-		Temperature:      options.Temperature,
+		Temperature:      dereferenceOrZero(options.Temperature),
 		TopP:             dereferenceOrZero(options.TopP),
 		Stop:             c.config.Stop,
 		PresencePenalty:  dereferenceOrZero(c.config.PresencePenalty),
@@ -343,7 +332,7 @@ func (c *Client) genRequest(in []*schema.Message, opts ...model.Option) (*openai
 		Config: &model.Config{
 			Model:       req.Model,
 			MaxTokens:   req.MaxTokens,
-			Temperature: dereferenceOrZero(req.Temperature),
+			Temperature: req.Temperature,
 			TopP:        req.TopP,
 			Stop:        req.Stop,
 		},
@@ -455,7 +444,7 @@ func (c *Client) Generate(ctx context.Context, in []*schema.Message, opts ...mod
 	if err != nil {
 		return nil, fmt.Errorf("failed to create chat completion request: %w", err)
 	}
-	
+
 	ctx = callbacks.OnStart(ctx, cbInput)
 	defer func() {
 		if err != nil {
