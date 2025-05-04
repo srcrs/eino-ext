@@ -581,8 +581,10 @@ func (c *Client) Stream(ctx context.Context, in []*schema.Message,
 			}
 
 			if msg.Content == "" && len(msg.ToolCalls) == 0 {
-				lastEmptyMsg = msg
-				continue
+				if _, ok := GetReasoningContent(msg); !ok {
+					lastEmptyMsg = msg
+					continue
+				}
 			}
 
 			lastEmptyMsg = nil
@@ -702,6 +704,9 @@ func resolveStreamResponse(resp openai.ChatCompletionStreamResponse) (msg *schem
 				Usage:        toEinoTokenUsage(resp.Usage),
 				LogProbs:     toStreamProbs(choice.Logprobs),
 			},
+		}
+		if len(choice.Delta.ReasoningContent) > 0 {
+			SetReasoningContent(msg, choice.Delta.ReasoningContent)
 		}
 
 		break
